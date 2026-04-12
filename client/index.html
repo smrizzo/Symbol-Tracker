@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http://localhost:* https://* wss://* ws://*; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' file: data: *;">
+  <title>SymbolTracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Resize Grip (shared across all screens) -->
+  <div class="resize-grip" id="resize-grip"></div>
+
+  <!-- Login Screen -->
+  <div id="login-screen" class="screen">
+    <div class="drag-handle login-drag-handle"></div>
+    <div class="login-container">
+      <h1 class="app-title">SymbolTracker</h1>
+
+      <div class="login-section">
+        <button id="admin-btn" class="btn btn-admin">Admin</button>
+      </div>
+
+      <div class="divider"><span>or join as raider</span></div>
+
+      <div class="login-section">
+        <input type="text" id="display-name" placeholder="Display Name" maxlength="20" class="input-field">
+        <input type="text" id="session-id" placeholder="Session ID (e.g. RAID-1234)" class="input-field">
+        <button id="connect-btn" class="btn btn-connect">Connect</button>
+      </div>
+
+      <div id="login-error" class="error-message"></div>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard -->
+  <div id="admin-screen" class="screen hidden">
+    <div class="status-bar drag-handle">
+      <div class="status-left">
+        <span class="session-id-display" id="admin-session-id">RAID-0000</span>
+        <button id="copy-session-btn" class="btn-small">Copy</button>
+      </div>
+      <div class="status-right">
+        <span class="player-count" id="admin-player-count">0 players</span>
+        <span class="role-badge badge-admin">ADMIN</span>
+        <span class="mode-indicator" id="admin-mode">Click-through</span>
+      </div>
+    </div>
+
+    <div class="symbol-buttons" id="admin-symbol-buttons">
+      <!-- Symbol buttons will be inserted here -->
+    </div>
+    <button id="admin-reset-btn" class="btn btn-reset">Reset</button>
+
+    <div class="admin-body">
+      <div class="admin-left">
+        <div class="players-section">
+          <h3>Connected Players</h3>
+          <div id="players-list" class="players-list">
+            <div class="empty-state">Waiting for players to connect...</div>
+          </div>
+        </div>
+        <button id="close-session-btn" class="btn btn-close">Close Session</button>
+      </div>
+
+      <div class="admin-right">
+        <div class="diagram-container">
+          <div id="admin-diagram" class="boss-diagram">
+            <!-- Diagram will be rendered here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Raid Leader Screen -->
+  <div id="leader-screen" class="screen hidden">
+    <button class="close-btn interactive-only" id="leader-close-btn" title="Disconnect and close">×</button>
+    <div class="status-bar drag-handle">
+      <div class="status-left">
+        <span class="session-id-display" id="leader-session-id">RAID-0000</span>
+      </div>
+      <div class="status-right">
+        <span class="player-count" id="leader-player-count">0 players</span>
+        <span class="role-badge badge-leader">RAID LEADER</span>
+        <span class="mode-indicator" id="leader-mode">Click-through</span>
+      </div>
+    </div>
+
+    <div class="symbol-buttons" id="leader-symbol-buttons">
+      <!-- Symbol buttons will be inserted here -->
+    </div>
+    <button id="leader-reset-btn" class="btn btn-reset">Reset</button>
+
+    <div class="diagram-container">
+      <div id="leader-diagram" class="boss-diagram">
+        <!-- Diagram will be rendered here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Raider Overlay -->
+  <div id="raider-screen" class="screen hidden">
+    <div class="drag-handle raider-drag-handle"></div>
+    <div class="connection-indicator" id="connection-dot"></div>
+    <div id="raider-diagram" class="boss-diagram raider-diagram">
+      <!-- Diagram will be rendered here -->
+    </div>
+  </div>
+
+  <!-- Raider close button lives at body level so it's never wiped by diagram renders
+       and is never inside a -webkit-app-region: drag container -->
+  <button id="raider-close-btn" class="raider-close-fixed" title="Disconnect and close">×</button>
+
+  <!-- Reconnecting Overlay -->
+  <div id="reconnecting-overlay" class="overlay hidden">
+    <div class="reconnecting-message">Reconnecting...</div>
+  </div>
+
+  <!-- Session Ended Overlay -->
+  <div id="session-ended-overlay" class="overlay hidden">
+    <div class="session-ended-message">Session ended</div>
+  </div>
+
+  <div id="role-dropdown" style="
+    display: none;
+    position: fixed;
+    z-index: 99999;
+    background: #1a1a2e;
+    border: 1px solid #5c3a8a;
+    border-radius: 6px;
+    min-width: 160px;
+    overflow: visible;
+  ">
+    <div id="dropdown-option" style="
+      padding: 8px 14px;
+      font-size: 13px;
+      color: #fff;
+      cursor: pointer;
+    "></div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

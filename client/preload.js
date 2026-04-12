@@ -1,0 +1,12 @@
+const { ipcRenderer } = require('electron');
+
+// Expose electronAPI to window
+window.electronAPI = {
+  onModeChanged: (callback) => ipcRenderer.on('mode-changed', (event, isInteractive) => callback(isInteractive)),
+  notifyRoleChanged: (role) => ipcRenderer.send('role-changed', role),
+  resetWindow: () => ipcRenderer.send('reset-window'),
+  getAssetsPath: () => ipcRenderer.invoke('get-assets-path'),
+  getWindowSize: () => ipcRenderer.invoke('get-window-size'),
+  setWindowSize: (width, height) => ipcRenderer.send('set-window-size', { width, height }),
+  quitApp: () => ipcRenderer.send('quit-app')
+};

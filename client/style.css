@@ -1,0 +1,732 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+  pointer-events: none;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #ffffff;
+  overflow: hidden;
+  background: transparent;
+  user-select: none;
+}
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Login Screen */
+#login-screen {
+  background: rgba(10, 10, 18, 0.95);
+  border: 1px solid #5c3a8a;
+  border-radius: 8px;
+  padding: 20px;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 280px;
+}
+
+.app-title {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #c8a400;
+}
+
+.login-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input-field {
+  background: rgba(30, 30, 40, 0.9);
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 10px 12px;
+  color: #fff;
+  font-size: 13px;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #5c3a8a;
+}
+
+.btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-admin {
+  background: #c8a400;
+  color: #000;
+}
+
+.btn-admin:hover {
+  background: #d9b800;
+}
+
+.btn-connect {
+  background: #4a90d9;
+  color: #fff;
+}
+
+.btn-connect:hover {
+  background: #5a9fe8;
+}
+
+.btn-reset {
+  background: #555;
+  color: #fff;
+  padding: 6px 12px;
+  font-size: 11px;
+  margin: 8px auto;
+  display: block;
+}
+
+.btn-reset:hover {
+  background: #666;
+}
+
+.btn-close {
+  background: #8b1a1a;
+  color: #fff;
+  margin-top: auto;
+  width: 100%;
+  padding: 8px 16px;
+}
+
+.btn-close:hover {
+  background: #a52a2a;
+}
+
+.btn-small {
+  background: #444;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  padding: 3px 8px;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.btn-small:hover {
+  background: #555;
+}
+
+.divider {
+  text-align: center;
+  margin: 16px 0;
+  color: #666;
+  font-size: 11px;
+}
+
+.divider span {
+  background: rgba(10, 10, 18, 0.95);
+  padding: 0 10px;
+}
+
+.error-message {
+  color: #ff6b6b;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 10px;
+  min-height: 18px;
+}
+
+/* Admin and Leader Screens */
+#admin-screen,
+#leader-screen {
+  background: rgba(10, 10, 18, 0.88);
+  border: 1px solid #5c3a8a;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+#admin-screen.interactive,
+#leader-screen.interactive {
+  animation: borderPulse 0.3s ease-out;
+}
+
+@keyframes borderPulse {
+  0% { border-color: #5c3a8a; }
+  50% { border-color: #9b6ad9; box-shadow: 0 0 15px rgba(155, 106, 217, 0.5); }
+  100% { border-color: #5c3a8a; }
+}
+
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  margin-bottom: 10px;
+  font-size: 11px;
+}
+
+.drag-handle {
+  -webkit-app-region: drag;
+}
+
+.drag-handle * {
+  -webkit-app-region: no-drag;
+}
+
+.login-drag-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  cursor: move;
+}
+
+.status-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.session-id-display {
+  font-weight: 600;
+  color: #fff;
+  font-family: monospace;
+}
+
+.player-count {
+  color: #888;
+}
+
+.role-badge {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.badge-admin {
+  background: #c8a400;
+  color: #000;
+}
+
+.badge-leader {
+  background: #4a90d9;
+  color: #fff;
+}
+
+.badge-raider {
+  background: #555;
+  color: #888;
+}
+
+.mode-indicator {
+  color: #666;
+  font-size: 9px;
+}
+
+/* Symbol Buttons */
+.symbol-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.symbol-btn {
+  width: 52px;
+  height: 52px;
+  border: 2px solid #333;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  padding: 4px;
+}
+
+.symbol-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.symbol-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  border-color: #666;
+}
+
+.symbol-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.symbol-btn.circle { background: #8B5E1A; }
+.symbol-btn.x { background: #8B1A1A; }
+.symbol-btn.triangle { background: #1A6B2A; }
+.symbol-btn.diamond { background: #5B1A8B; }
+.symbol-btn.t { background: #C8C8C8; border-color: #333; }
+
+/* Admin Split Layout */
+.admin-body {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.admin-left {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-right {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Players List */
+.players-section {
+  margin: 0;
+}
+
+.players-section h3 {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 6px;
+}
+
+.players-list {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  max-height: 160px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+}
+
+.players-list .empty-state {
+  grid-column: 1 / -1;
+}
+
+.player-row {
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  height: 28px;
+  min-width: 0;
+  gap: 4px;
+}
+
+.player-dot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #4caf50;
+}
+
+.player-name {
+  flex: 1;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.player-role {
+  flex-shrink: 0;
+}
+
+.player-gear {
+  position: relative;
+  cursor: pointer;
+  font-size: 12px;
+  color: #888;
+  flex-shrink: 0;
+}
+
+.player-gear:hover {
+  color: #fff;
+}
+
+/* Role badge variants for player list */
+.badge-leader-sm {
+  background: #185FA5;
+  color: #a8d0f7;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.badge-raider-sm {
+  background: #333;
+  color: #777;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+#dropdown-option:hover {
+  background: rgba(92, 58, 138, 0.5);
+}
+
+.empty-state {
+  padding: 16px;
+  text-align: center;
+  color: #666;
+  font-size: 11px;
+}
+
+/* Boss Diagram */
+.diagram-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex: 1;
+  padding: 4px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.admin-right .diagram-container {
+  padding: 0;
+  align-items: center;
+}
+
+.boss-diagram {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  max-width: min(100%, 100vh - 200px);
+  height: auto;
+  background: rgba(40, 40, 55, 0.92);
+  border: 2px solid rgba(100, 80, 130, 0.6);
+  border-radius: 50%;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.admin-right .boss-diagram {
+  width: 200px;
+  max-width: 200px;
+}
+
+.raider-diagram {
+  width: min(calc(100vw - 20px), calc(100vh - 20px));
+  max-width: none;
+}
+
+.boss-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.tank-marker {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  object-fit: contain;
+  display: block;
+}
+
+.position-slot {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.slot-tile {
+  background: rgba(30, 30, 40, 0.8);
+  border: 1px solid #444;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.slot-tile img {
+  width: 85%;
+  height: 85%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.3s ease-in;
+}
+
+.slot-tile img.visible {
+  opacity: 1;
+}
+
+.slot-tile.filled.circle { background: #8B5E1A; }
+.slot-tile.filled.x { background: #8B1A1A; }
+.slot-tile.filled.triangle { background: #1A6B2A; }
+.slot-tile.filled.diamond { background: #5B1A8B; }
+.slot-tile.filled.t { background: #C8C8C8; }
+
+.slot-number {
+  font-weight: 600;
+  color: #fff;
+  margin-top: 2px;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+}
+
+/* Raider Overlay */
+#raider-screen {
+  background: transparent;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.raider-drag-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+}
+
+.raider-diagram {
+  -webkit-app-region: drag;
+  cursor: move;
+  width: min(calc(100vw - 20px), calc(100vh - 20px)) !important;
+  height: min(calc(100vw - 20px), calc(100vh - 20px)) !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+
+.connection-indicator {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4caf50;
+}
+
+.connection-indicator.disconnected {
+  background: #f44336;
+}
+
+/* Overlays */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.reconnecting-message,
+.session-ended-message {
+  color: #fff;
+  font-size: 14px;
+  padding: 20px 30px;
+  background: rgba(30, 30, 40, 0.95);
+  border: 1px solid #5c3a8a;
+  border-radius: 8px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #5c3a8a;
+  border-radius: 3px;
+}
+
+/* Close Button — leader screen (inside frame, position absolute) */
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: rgba(40, 40, 50, 0.8);
+  color: #888;
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  -webkit-app-region: no-drag;
+}
+
+.close-btn:hover {
+  background: rgba(139, 26, 26, 0.9);
+  color: #fff;
+}
+
+body.interactive-mode .close-btn.interactive-only {
+  display: flex;
+}
+
+/* Raider close button — body-level fixed, never inside any drag container */
+.raider-close-fixed {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: rgba(40, 40, 50, 0.8);
+  color: #888;
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  -webkit-app-region: no-drag;
+}
+
+.raider-close-fixed:hover {
+  background: rgba(139, 26, 26, 0.9);
+  color: #fff;
+}
+
+body.interactive-mode.raider-mode .raider-close-fixed {
+  display: flex;
+}
+
+/* Admin and Leader screens — full frame draggable */
+#admin-screen,
+#leader-screen {
+  -webkit-app-region: drag;
+}
+
+/* Opt interactive content back out of drag */
+.symbol-buttons,
+#admin-reset-btn,
+#leader-reset-btn,
+.admin-body,
+.diagram-container {
+  -webkit-app-region: no-drag;
+}
+
+/* Resize Grip */
+.resize-grip {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  cursor: se-resize;
+  z-index: 9999;
+  background: linear-gradient(135deg, transparent 50%, rgba(92, 58, 138, 0.6) 50%);
+  border-bottom-right-radius: 4px;
+}
+
+.resize-grip:hover {
+  background: linear-gradient(135deg, transparent 50%, rgba(92, 58, 138, 0.9) 50%);
+}
+
+/* Resize grip on raider screen needs to be more visible */
+body.raider-mode .resize-grip {
+  background: linear-gradient(135deg, transparent 40%, rgba(40, 40, 55, 0.95) 40%);
+  border: 1px solid rgba(100, 80, 130, 0.6);
+  border-top: none;
+  border-left: none;
+  border-bottom-right-radius: 8px;
+  width: 24px;
+  height: 24px;
+}
+
+.resize-grip::before {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.resize-grip::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 4px;
+  height: 4px;
+  border-right: 2px solid rgba(255, 255, 255, 0.3);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+}
