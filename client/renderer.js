@@ -1,6 +1,7 @@
 // Load config
 const config = require('./config.json');
 const io = require('socket.io-client');
+const bcrypt = require('bcryptjs');
 
 // State
 let socket = null;
@@ -41,7 +42,11 @@ const reconnectingOverlay = document.getElementById('reconnecting-overlay');
 const sessionEndedOverlay = document.getElementById('session-ended-overlay');
 
 // Login elements
+const adminBtnSection = document.getElementById('admin-btn-section');
 const adminBtn = document.getElementById('admin-btn');
+const adminPasswordSection = document.getElementById('admin-password-section');
+const adminCodeInput = document.getElementById('admin-code-input');
+const adminConfirmBtn = document.getElementById('admin-confirm-btn');
 const displayNameInput = document.getElementById('display-name');
 const sessionIdInput = document.getElementById('session-id');
 const connectBtn = document.getElementById('connect-btn');
@@ -80,10 +85,29 @@ async function init() {
 }
 
 function setupEventListeners() {
-  // Admin login
+  // Admin login — reveal password field
   adminBtn.addEventListener('click', () => {
     loginError.textContent = '';
-    connectAsAdmin();
+    adminBtnSection.classList.add('hidden');
+    adminPasswordSection.classList.remove('hidden');
+    adminCodeInput.focus();
+  });
+
+  // Admin confirm button
+  adminConfirmBtn.addEventListener('click', () => {
+    const password = adminCodeInput.value;
+    if (!password) {
+      loginError.textContent = 'Please enter the admin code';
+      return;
+    }
+    loginError.textContent = '';
+    adminCodeInput.value = ''; // clear immediately — never keep it in the DOM
+    connectAsAdmin(password);
+  });
+
+  // Enter key in admin code field
+  adminCodeInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') adminConfirmBtn.click();
   });
 
   // Raider login
@@ -158,11 +182,19 @@ function setupEventListeners() {
   if (raiderCloseBtn) raiderCloseBtn.addEventListener('click', handleClose);
 }
 
-function connectAsAdmin() {
+function connectAsAdmin(password) {
+  // password was already cleared from the DOM input before this is called.
+  // We hold it only in this local variable, hash it, then discard it.
   socket = io(config.serverUrl, { transports: ['websocket', 'polling'] });
 
   socket.on('connect', () => {
-    socket.emit('create_session', { adminCode: config.adminCode });
+    // Request the server's bcrypt salt, then hash the password client-side
+    // so the plaintext never leaves this machine.
+    socket.emit('get_salt', (response) => {
+      bcrypt.hash(password, response.salt).then((adminHash) => {
+        socket.emit('create_session', { adminHash });
+      });
+    });
   });
 
   socket.on('session_created', (data) => {
@@ -177,8 +209,10 @@ function connectAsAdmin() {
   });
 
   socket.on('auth_error', (data) => {
+    adminCodeInput.focus();
     loginError.textContent = data.message;
     socket.disconnect();
+    socket = null;
   });
 
   setupCommonSocketHandlers();
@@ -328,7 +362,11 @@ function resetToLogin() {
 
   displayNameInput.value = '';
   sessionIdInput.value = '';
+  adminCodeInput.value = '';
   loginError.textContent = '';
+
+  adminPasswordSection.classList.add('hidden');
+  adminBtnSection.classList.remove('hidden');
 
   showScreen(null);
   loginScreen.classList.remove('hidden');

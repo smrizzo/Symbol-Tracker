@@ -11,7 +11,7 @@ SymbolTracker lets the raid leader click symbols in the order the boss shows the
 ## Three Roles
 
 ### Admin
-- Logs in using the admin code from `client/config.json`
+- Clicks the Admin button and types the admin code into the password field
 - Creates and manages the session
 - Can promote/demote players to Raid Leader role
 - Sees the full Admin Dashboard with player list and boss diagram
@@ -39,7 +39,8 @@ SymbolTracker lets the raid leader click symbols in the order the boss shows the
 /server
   index.js        # Socket.io server
   package.json
-  Procfile        # For Railway/Heroku deployment
+  .env.example    # Template for required environment variables (commit this)
+  .env            # Your local secrets - NEVER commit this file
 
 /client
   main.js         # Electron main process
@@ -48,10 +49,30 @@ SymbolTracker lets the raid leader click symbols in the order the boss shows the
   style.css       # Styles
   renderer.js     # Client-side logic
   package.json
-  config.json     # Server URL and admin code
+  config.json     # Server URL and admin code (update before building)
 
 /assets           # Symbol and boss images (TGA/PNG)
+Procfile          # For Railway deployment
 ```
+
+## Environment Variables
+
+The server requires the following environment variable:
+
+| Variable     | Required | Description                                                    |
+|--------------|----------|----------------------------------------------------------------|
+| `ADMIN_CODE` | Yes      | The admin password. Bcrypt-hashed at startup; never stored in plain text or transmitted over the network. |
+| `PORT`       | No       | Port to listen on (defaults to `3000`)                         |
+
+The server will **exit immediately with an error message** if `ADMIN_CODE` is not set.
+
+### How the authentication works
+
+1. At startup the server bcrypt-hashes `ADMIN_CODE` (cost factor 10) and deletes the plaintext from the environment. Only the salt and the resulting hash live in memory.
+2. When the Admin clicks "Connect as Admin" the client requests the salt from the server via a `get_salt` socket event.
+3. The client hashes the typed password locally with that salt using `bcryptjs`.
+4. Only the hash is sent to the server — the plaintext never leaves the machine.
+5. The server compares the received hash to its stored hash using a constant-time comparison and either creates the session or returns an error.
 
 ## Setup
 
@@ -70,21 +91,36 @@ The `assets/` folder should contain the following image files in **PNG format**:
 - Online converters (cloudconvert.com, convertio.co)
 - ImageMagick: `magick Circle.tga Circle.png`
 
-The app attempts to load TGA first, then falls back to PNG if TGA fails.
+### 2. Configure the Server (Local Dev)
 
-### 2. Configure Admin Code
+```bash
+cd server
+cp .env.example .env
+```
 
-**Client:** Edit `client/config.json`:
+Open `server/.env` and set a strong, unique admin code:
+
+```env
+ADMIN_CODE=some-long-random-secret-here
+```
+
+> **Never commit `server/.env` to git.** It is listed in `.gitignore`.
+
+### 3. Configure the Client
+
+Edit `client/config.json` with the server URL:
+
 ```json
 {
-  "serverUrl": "http://localhost:3000",
-  "adminCode": "your-secret-code"
+  "serverUrl": "http://localhost:3000"
 }
 ```
 
-**Server:** Set the `ADMIN_CODE` environment variable or it defaults to `"changeme"`.
+For Railway deployment, replace the URL with your Railway-assigned URL.
 
-### 3. Run the Server
+> **Note:** The admin code is no longer stored in `config.json`. The Admin enters it manually in the login screen each time.
+
+### 4. Run the Server
 
 ```bash
 cd server
@@ -92,9 +128,9 @@ npm install
 node index.js
 ```
 
-The server runs on port 3000 by default. Set `PORT` environment variable to change.
+The server runs on port 3000 by default.
 
-### 4. Run the Client
+### 5. Run the Client
 
 ```bash
 cd client
@@ -128,22 +164,36 @@ ngrok http 3000
 Update `client/config.json` with the ngrok URL:
 ```json
 {
-  "serverUrl": "https://abc123.ngrok.io",
-  "adminCode": "your-secret-code"
+  "serverUrl": "https://abc123.ngrok.io"
 }
 ```
 
 ## Deploying to Railway
 
+### Before you deploy
+
+You must set environment variables in Railway **before** the first deploy or the server will crash on startup.
+
+### Steps
+
 1. Create a new project on [Railway](https://railway.app)
 2. Link your GitHub repository
-3. Set the `ADMIN_CODE` environment variable in Railway settings
-4. Railway auto-detects the Procfile and deploys the server
-5. Update client `config.json` with the Railway URL
+3. In Railway **Settings → Variables**, add:
+   - `ADMIN_CODE` → your real admin password (e.g. a long random string). Railway encrypts environment variables at rest. This value is bcrypt-hashed at server startup and then discarded — it is never stored in any file or transmitted over the network.
+4. Railway auto-detects the `Procfile` at the repo root and runs `node server/index.js`
+5. After deploy, copy the Railway-assigned URL and update `client/config.json`:
+   ```json
+   {
+     "serverUrl": "https://your-app.up.railway.app"
+   }
+   ```
+6. Rebuild and distribute the client executable
+
+> **Railway note:** `PORT` is automatically provided by Railway — do not set it manually.
 
 ## Building as Executable
 
-To package the client as a standalone `.exe`:
+Before building, make sure `client/config.json` has the correct production `serverUrl` and `adminCode`.
 
 ```bash
 cd client
@@ -154,7 +204,7 @@ The executable will be in the `client/dist` folder.
 
 ## Tech Stack
 
-- **Server:** Node.js 18+, Socket.io v4
+- **Server:** Node.js 18+, Socket.io v4, dotenv
 - **Client:** Electron v28, Socket.io-client, vanilla JS/HTML/CSS
 - **Packaging:** electron-builder
 

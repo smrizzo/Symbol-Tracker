@@ -17,8 +17,13 @@
     <div class="login-container">
       <h1 class="app-title">SymbolTracker</h1>
 
-      <div class="login-section">
+      <div id="admin-btn-section" class="login-section">
         <button id="admin-btn" class="btn btn-admin">Admin</button>
+      </div>
+
+      <div id="admin-password-section" class="login-section hidden">
+        <input type="password" id="admin-code-input" placeholder="Admin code" class="input-field" autocomplete="off">
+        <button id="admin-confirm-btn" class="btn btn-admin">Connect as Admin</button>
       </div>
 
       <div class="divider"><span>or join as raider</span></div>

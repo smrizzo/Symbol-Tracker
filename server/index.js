@@ -1,8 +1,25 @@
+require('dotenv').config();
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+
+// Validate required environment variables at startup
+if (!process.env.ADMIN_CODE) {
+  console.error('ERROR: ADMIN_CODE environment variable is required but not set.');
+  console.error('Copy server/.env.example to server/.env and fill in your values.');
+  process.exit(1);
+}
+
+// Hash the admin code at startup. The salt is kept so the client can request
+// it and hash the typed password with the same salt before sending — this
+// means the plaintext never travels over the network.
+// Both SALT and ADMIN_HASH live only in server memory; no plaintext is retained.
+const SALT = bcrypt.genSaltSync(10);
+const ADMIN_HASH = bcrypt.hashSync(process.env.ADMIN_CODE, SALT);
+delete process.env.ADMIN_CODE; // remove plaintext from the environment
 
 const PORT = process.env.PORT || 3000;
-const ADMIN_CODE = process.env.ADMIN_CODE || 'changeme';
 
 const httpServer = createServer();
 const io = new Server(httpServer, {
@@ -48,12 +65,35 @@ function checkSessionCleanup() {
 io.on('connection', (socket) => {
   console.log(`Client connected: ${socket.id}`);
 
+  // Provide the bcrypt salt so the client can hash before transmitting.
+  // The hash is deterministic: same salt + same password = same hash, so
+  // the server can validate by comparing hashes directly without ever
+  // receiving or storing the plaintext.
+  socket.on('get_salt', (callback) => {
+    if (typeof callback === 'function') {
+      callback({ salt: SALT });
+    }
+  });
+
   // Admin creates a session
   socket.on('create_session', (data) => {
-    const { adminCode } = data;
+    const { adminHash } = data;
 
-    // Validate admin code
-    if (adminCode !== ADMIN_CODE) {
+    // The client hashes the typed password with the server's salt before
+    // sending. Both sides used bcrypt with the same salt, so the hashes
+    // are identical strings iff the passwords match. We use timingSafeEqual
+    // to avoid leaking information via response timing.
+    let isValid = false;
+    try {
+      const received = Buffer.from(adminHash || '', 'utf8');
+      const stored = Buffer.from(ADMIN_HASH, 'utf8');
+      isValid = received.length === stored.length &&
+                crypto.timingSafeEqual(received, stored);
+    } catch {
+      isValid = false;
+    }
+
+    if (!isValid) {
       socket.emit('auth_error', { message: 'Invalid admin code' });
       return;
     }
@@ -258,5 +298,4 @@ io.on('connection', (socket) => {
 
 httpServer.listen(PORT, () => {
   console.log(`SymbolTracker server running on port ${PORT}`);
-  console.log(`Admin code: ${ADMIN_CODE === 'changeme' ? 'changeme (default)' : '(custom)'}`);
 });
