@@ -57,19 +57,20 @@ function broadcastPlayersUpdate() {
 // Check if session should be deleted (no players left)
 function checkSessionCleanup() {
   if (session && session.players.size === 0) {
-    console.log(`Session ${session.id} deleted - all players disconnected`);
+    console.log(`[SERVER] Session ${session.id} deleted - all players disconnected`);
     session = null;
   }
 }
 
 io.on('connection', (socket) => {
-  console.log(`Client connected: ${socket.id}`);
+  console.log(`[SERVER] Client connected: ${socket.id}`);
 
   // Provide the bcrypt salt so the client can hash before transmitting.
   // The hash is deterministic: same salt + same password = same hash, so
   // the server can validate by comparing hashes directly without ever
   // receiving or storing the plaintext.
   socket.on('get_salt', (callback) => {
+    console.log(`[SERVER] get_salt requested by ${socket.id}`);
     if (typeof callback === 'function') {
       callback({ salt: SALT });
     }
@@ -78,6 +79,7 @@ io.on('connection', (socket) => {
   // Admin creates a session
   socket.on('create_session', (data) => {
     const { adminHash } = data;
+    console.log(`[SERVER] create_session received from ${socket.id}`);
 
     // The client hashes the typed password with the server's salt before
     // sending. Both sides used bcrypt with the same salt, so the hashes
@@ -94,12 +96,14 @@ io.on('connection', (socket) => {
     }
 
     if (!isValid) {
+      console.log(`[SERVER] Auth failed for ${socket.id} - invalid admin hash`);
       socket.emit('auth_error', { message: 'Invalid admin code' });
       return;
     }
 
     // Check if session already exists
     if (session) {
+      console.log(`[SERVER] Auth failed for ${socket.id} - session already active (${session.id})`);
       socket.emit('auth_error', { message: 'A session is already active' });
       return;
     }
@@ -129,15 +133,17 @@ io.on('connection', (socket) => {
     });
 
     broadcastPlayersUpdate();
-    console.log(`Session created: ${sessionId} by admin ${socket.id}`);
+    console.log(`[SERVER] Session created: ${sessionId} by admin ${socket.id}`);
   });
 
   // Player joins a session
   socket.on('join_session', (data) => {
     const { name, sessionId } = data;
+    console.log(`[SERVER] join_session received: name="${name}" sessionId="${sessionId}" from ${socket.id}`);
 
     // Validate session exists
     if (!session || session.id !== sessionId) {
+      console.log(`[SERVER] join_error: session "${sessionId}" not found`);
       socket.emit('join_error', { message: 'Session not found' });
       return;
     }
@@ -145,6 +151,7 @@ io.on('connection', (socket) => {
     // Check if name is taken
     for (const player of session.players.values()) {
       if (player.name.toLowerCase() === name.toLowerCase()) {
+        console.log(`[SERVER] join_error: name "${name}" already taken in ${sessionId}`);
         socket.emit('join_error', { message: 'Name already taken' });
         return;
       }
@@ -166,7 +173,7 @@ io.on('connection', (socket) => {
     });
 
     broadcastPlayersUpdate();
-    console.log(`Player ${name} joined session ${sessionId}`);
+    console.log(`[SERVER] Player "${name}" joined session ${sessionId} (${session.players.size} players total)`);
   });
 
   // Admin assigns role to a player
@@ -194,7 +201,7 @@ io.on('connection', (socket) => {
       });
 
       broadcastPlayersUpdate();
-      console.log(`Role updated: ${player.name} is now ${role}`);
+      console.log(`[SERVER] Role updated: "${player.name}" is now ${role} in ${session.id}`);
     }
   });
 
@@ -220,7 +227,7 @@ io.on('connection', (socket) => {
       symbolSequence: session.symbolSequence
     });
 
-    console.log(`Symbol added: ${symbol}, sequence: ${session.symbolSequence}`);
+    console.log(`[SERVER] symbol_add: "${symbol}" by ${socket.id} | sequence: [${session.symbolSequence.join(', ')}] | broadcasting to ${session.players.size} players`);
   });
 
   // Reset the symbol sequence
@@ -236,7 +243,7 @@ io.on('connection', (socket) => {
     session.symbolSequence = [];
 
     io.to(session.id).emit('state_reset');
-    console.log('Symbol sequence reset');
+    console.log(`[SERVER] reset by ${socket.id} | broadcasting to ${session.players.size} players`);
   });
 
   // Admin closes session
@@ -260,13 +267,13 @@ io.on('connection', (socket) => {
       }
     }
 
-    console.log(`Session ${session.id} closed by admin`);
+    console.log(`[SERVER] Session ${session.id} closed by admin ${socket.id}`);
     session = null;
   });
 
   // Handle disconnection
-  socket.on('disconnect', () => {
-    console.log(`Client disconnected: ${socket.id}`);
+  socket.on('disconnect', (reason) => {
+    console.log(`[SERVER] Client disconnected: ${socket.id} (reason: ${reason})`);
 
     if (!session) return;
 
@@ -275,11 +282,12 @@ io.on('connection', (socket) => {
       // If admin disconnects, close the session
       if (player.role === 'admin') {
         io.to(session.id).emit('session_closed');
-        console.log(`Session ${session.id} closed - admin disconnected`);
+        console.log(`[SERVER] Session ${session.id} closed - admin disconnected`);
         session = null;
       } else {
         // Remove player from session
         session.players.delete(socket.id);
+        console.log(`[SERVER] Player "${player.name}" removed from ${session.id} (${session.players.size} players remaining)`);
         broadcastPlayersUpdate();
         checkSessionCleanup();
       }
@@ -289,6 +297,7 @@ io.on('connection', (socket) => {
   // Request current state (for reconnection)
   socket.on('request_state', () => {
     if (session && session.players.has(socket.id)) {
+      console.log(`[SERVER] state_sync sent to ${socket.id} | sequence: [${session.symbolSequence.join(', ')}]`);
       socket.emit('state_sync', {
         symbolSequence: session.symbolSequence
       });
@@ -297,5 +306,5 @@ io.on('connection', (socket) => {
 });
 
 httpServer.listen(PORT, () => {
-  console.log(`SymbolTracker server running on port ${PORT}`);
+  console.log(`[SERVER] SymbolTracker server running on port ${PORT}`);
 });

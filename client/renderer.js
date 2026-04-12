@@ -144,11 +144,18 @@ function setupEventListeners() {
   });
 
   // Reset buttons
-  adminResetBtn.addEventListener('click', () => socket.emit('reset'));
-  leaderResetBtn.addEventListener('click', () => socket.emit('reset'));
+  adminResetBtn.addEventListener('click', () => {
+    console.log('[CLIENT] Emitting: reset');
+    socket.emit('reset');
+  });
+  leaderResetBtn.addEventListener('click', () => {
+    console.log('[CLIENT] Emitting: reset');
+    socket.emit('reset');
+  });
 
   // Close session
   closeSessionBtn.addEventListener('click', () => {
+    console.log('[CLIENT] Emitting: close_session');
     socket.emit('close_session');
   });
 
@@ -185,19 +192,24 @@ function setupEventListeners() {
 function connectAsAdmin(password) {
   // password was already cleared from the DOM input before this is called.
   // We hold it only in this local variable, hash it, then discard it.
+  console.log(`[CLIENT] Connecting to server: ${config.serverUrl}`);
   socket = io(config.serverUrl, { transports: ['websocket', 'polling'] });
 
   socket.on('connect', () => {
+    console.log(`[CLIENT] Connected to ${config.serverUrl} (socket: ${socket.id})`);
     // Request the server's bcrypt salt, then hash the password client-side
     // so the plaintext never leaves this machine.
     socket.emit('get_salt', (response) => {
+      console.log('[CLIENT] Received salt, hashing password...');
       bcrypt.hash(password, response.salt).then((adminHash) => {
+        console.log('[CLIENT] Emitting: create_session');
         socket.emit('create_session', { adminHash });
       });
     });
   });
 
   socket.on('session_created', (data) => {
+    console.log(`[CLIENT] Received: session_created | sessionId: ${data.sessionId}`);
     sessionId = data.sessionId;
     currentRole = 'admin';
     symbolSequence = data.symbolSequence || [];
@@ -209,6 +221,7 @@ function connectAsAdmin(password) {
   });
 
   socket.on('auth_error', (data) => {
+    console.log(`[CLIENT] Received: auth_error | message: "${data.message}"`);
     adminCodeInput.focus();
     loginError.textContent = data.message;
     socket.disconnect();
@@ -222,13 +235,17 @@ function connectAsRaider(name, sessId) {
   displayName = name;
   sessionId = sessId;
 
+  console.log(`[CLIENT] Connecting to server: ${config.serverUrl}`);
   socket = io(config.serverUrl, { transports: ['websocket', 'polling'] });
 
   socket.on('connect', () => {
+    console.log(`[CLIENT] Connected to ${config.serverUrl} (socket: ${socket.id})`);
+    console.log(`[CLIENT] Emitting: join_session | name: "${displayName}" sessionId: "${sessionId}"`);
     socket.emit('join_session', { name: displayName, sessionId: sessionId });
   });
 
   socket.on('join_success', (data) => {
+    console.log(`[CLIENT] Received: join_success | role: ${data.role} sessionId: ${data.sessionId} sequence: [${(data.symbolSequence || []).join(', ')}]`);
     currentRole = data.role;
     symbolSequence = data.symbolSequence || [];
     showScreen(currentRole === 'leader' ? 'leader' : 'raider');
@@ -244,6 +261,7 @@ function connectAsRaider(name, sessId) {
   });
 
   socket.on('join_error', (data) => {
+    console.log(`[CLIENT] Received: join_error | message: "${data.message}"`);
     loginError.textContent = data.message;
     socket.disconnect();
   });
@@ -252,7 +270,8 @@ function connectAsRaider(name, sessId) {
 }
 
 function setupCommonSocketHandlers() {
-  socket.on('disconnect', () => {
+  socket.on('disconnect', (reason) => {
+    console.log(`[CLIENT] Disconnected from server (reason: ${reason})`);
     if (currentRole === 'raider') {
       connectionDot.classList.add('disconnected');
     }
@@ -260,6 +279,10 @@ function setupCommonSocketHandlers() {
   });
 
   socket.on('connect', () => {
+    // This fires on reconnects (after the initial connect handled in connectAsAdmin/Raider)
+    if (currentRole) {
+      console.log(`[CLIENT] Reconnected to ${config.serverUrl} (socket: ${socket.id})`);
+    }
     if (currentRole === 'raider') {
       connectionDot.classList.remove('disconnected');
     }
@@ -270,24 +293,28 @@ function setupCommonSocketHandlers() {
       if (currentRole === 'admin') {
         // Admin needs to recreate - session is gone
       } else {
+        console.log(`[CLIENT] Reconnect: re-emitting join_session | name: "${displayName}" sessionId: "${sessionId}"`);
         socket.emit('join_session', { name: displayName, sessionId: sessionId });
       }
     }
   });
 
   socket.on('state_update', (data) => {
+    console.log(`[CLIENT] Received: state_update | sequence: [${data.symbolSequence.join(', ')}]`);
     symbolSequence = data.symbolSequence;
     updateAllDiagrams();
     updateSymbolButtons();
   });
 
   socket.on('state_reset', () => {
+    console.log('[CLIENT] Received: state_reset');
     symbolSequence = [];
     updateAllDiagrams();
     updateSymbolButtons();
   });
 
   socket.on('state_sync', (data) => {
+    console.log(`[CLIENT] Received: state_sync | sequence: [${data.symbolSequence.join(', ')}]`);
     symbolSequence = data.symbolSequence;
     updateAllDiagrams();
     updateSymbolButtons();
@@ -487,6 +514,7 @@ function renderSymbolButtons(container) {
     btn.addEventListener('click', () => {
       const symbol = btn.dataset.symbol;
       if (!btn.disabled && !symbolSequence.includes(symbol)) {
+        console.log(`[CLIENT] Emitting: symbol_add | symbol: "${symbol}"`);
         socket.emit('symbol_add', { symbol });
       }
     });
