@@ -20,9 +20,9 @@ function createWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width: screenWidth } = primaryDisplay.workAreaSize;
 
-  // Default to raider size, will resize based on role
+  // Login size — tall enough for all fields including the session token input
   const windowWidth = 320;
-  const windowHeight = 320;
+  const windowHeight = 370;
 
   mainWindow = new BrowserWindow({
     width: windowWidth,
@@ -92,8 +92,8 @@ ipcMain.on('reset-window', () => {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width: screenWidth } = primaryDisplay.workAreaSize;
 
-  // Reset to raider size for login screen
-  mainWindow.setSize(320, 380);
+  // Reset to login size
+  mainWindow.setSize(320, 460);
   mainWindow.setPosition(screenWidth - 340, 20);
 });
 

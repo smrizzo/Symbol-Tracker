@@ -34,7 +34,7 @@ body {
   background: rgba(10, 10, 18, 0.95);
   border: 1px solid #5c3a8a;
   border-radius: 8px;
-  padding: 20px;
+  padding: 36px 20px 20px;
   justify-content: center;
   align-items: center;
   position: relative;
@@ -106,7 +106,7 @@ body {
   color: #fff;
   padding: 6px 12px;
   font-size: 11px;
-  margin: 8px auto;
+  margin: 0 auto 8px;
   display: block;
 }
 
@@ -187,8 +187,20 @@ body {
   padding: 8px;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 4px;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+.token-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
   margin-bottom: 10px;
   font-size: 11px;
+  min-width: 0;
 }
 
 .drag-handle {
@@ -229,7 +241,7 @@ body {
 .session-token-label {
   color: #aaa;
   font-size: 11px;
-  margin-left: 4px;
+  flex-shrink: 0;
 }
 
 .session-token-display {
@@ -238,7 +250,8 @@ body {
   font-family: monospace;
   font-size: 11px;
   letter-spacing: 0.03em;
-  max-width: 220px;
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -280,7 +293,7 @@ body {
   display: flex;
   justify-content: center;
   gap: 6px;
-  margin: 8px 0;
+  margin: 0 0 6px;
 }
 
 .symbol-btn {
@@ -695,7 +708,8 @@ body.interactive-mode.raider-mode .raider-close-fixed {
 #admin-reset-btn,
 #leader-reset-btn,
 .admin-body,
-.diagram-container {
+.diagram-container,
+#copy-token-btn {
   -webkit-app-region: no-drag;
 }
 
