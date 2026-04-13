@@ -23,6 +23,14 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Delete existing release and tag if present
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./client/package.json').version")
+          gh release delete "v${VERSION}" --yes --cleanup-tag || echo "No existing release for v${VERSION}"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
       - name: Install dependencies
         working-directory: client
         run: npm install
