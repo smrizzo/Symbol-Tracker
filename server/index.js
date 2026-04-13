@@ -110,8 +110,10 @@ io.on('connection', (socket) => {
 
     // Create new session
     const sessionId = generateSessionId();
+    const sessionToken = crypto.randomUUID();
     session = {
       id: sessionId,
+      token: sessionToken,
       adminSocketId: socket.id,
       players: new Map(),
       symbolSequence: []
@@ -128,6 +130,7 @@ io.on('connection', (socket) => {
 
     socket.emit('session_created', {
       sessionId,
+      sessionToken,
       role: 'admin',
       symbolSequence: []
     });
@@ -138,13 +141,20 @@ io.on('connection', (socket) => {
 
   // Player joins a session
   socket.on('join_session', (data) => {
-    const { name, sessionId } = data;
+    const { name, sessionId, token } = data;
     console.log(`[SERVER] join_session received: name="${name}" sessionId="${sessionId}" from ${socket.id}`);
 
     // Validate session exists
     if (!session || session.id !== sessionId) {
       console.log(`[SERVER] join_error: session "${sessionId}" not found`);
       socket.emit('join_error', { message: 'Session not found' });
+      return;
+    }
+
+    // Validate session token
+    if (!token || token !== session.token) {
+      console.log(`[SERVER] join_error: invalid token for session "${sessionId}" from ${socket.id}`);
+      socket.emit('join_error', { message: 'Invalid session token' });
       return;
     }
 

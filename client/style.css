@@ -226,6 +226,24 @@ body {
   font-family: monospace;
 }
 
+.session-token-label {
+  color: #aaa;
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+.session-token-display {
+  font-weight: 600;
+  color: #c8a0ff;
+  font-family: monospace;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .player-count {
   color: #888;
 }

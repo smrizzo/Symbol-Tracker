@@ -31,6 +31,7 @@
       <div class="login-section">
         <input type="text" id="display-name" placeholder="Display Name" maxlength="20" class="input-field">
         <input type="text" id="session-id" placeholder="Session ID (e.g. RAID-1234)" class="input-field">
+        <input type="text" id="session-token" placeholder="Session Token" class="input-field" autocomplete="off">
         <button id="connect-btn" class="btn btn-connect">Connect</button>
       </div>
 
@@ -43,7 +44,10 @@
     <div class="status-bar drag-handle">
       <div class="status-left">
         <span class="session-id-display" id="admin-session-id">RAID-0000</span>
-        <button id="copy-session-btn" class="btn-small">Copy</button>
+        <button id="copy-session-btn" class="btn-small">Copy ID</button>
+        <span class="session-token-label">Token:</span>
+        <span class="session-token-display" id="admin-session-token">—</span>
+        <button id="copy-token-btn" class="btn-small">Copy Token</button>
       </div>
       <div class="status-right">
         <span class="player-count" id="admin-player-count">0 players</span>

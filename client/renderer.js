@@ -8,6 +8,7 @@ let socket = null;
 let assetsPath = '';
 let currentRole = null;
 let sessionId = null;
+let sessionToken = null;
 let displayName = null;
 let symbolSequence = [];
 let players = [];
@@ -49,12 +50,15 @@ const adminCodeInput = document.getElementById('admin-code-input');
 const adminConfirmBtn = document.getElementById('admin-confirm-btn');
 const displayNameInput = document.getElementById('display-name');
 const sessionIdInput = document.getElementById('session-id');
+const sessionTokenInput = document.getElementById('session-token');
 const connectBtn = document.getElementById('connect-btn');
 const loginError = document.getElementById('login-error');
 
 // Admin elements
 const adminSessionId = document.getElementById('admin-session-id');
+const adminSessionToken = document.getElementById('admin-session-token');
 const copySessionBtn = document.getElementById('copy-session-btn');
+const copyTokenBtn = document.getElementById('copy-token-btn');
 const adminPlayerCount = document.getElementById('admin-player-count');
 const adminMode = document.getElementById('admin-mode');
 const playersList = document.getElementById('players-list');
@@ -115,6 +119,7 @@ function setupEventListeners() {
     loginError.textContent = '';
     const name = displayNameInput.value.trim();
     const sessId = sessionIdInput.value.trim().toUpperCase();
+    const token = sessionTokenInput.value.trim();
 
     if (!name) {
       loginError.textContent = 'Please enter a display name';
@@ -124,23 +129,37 @@ function setupEventListeners() {
       loginError.textContent = 'Please enter a session ID';
       return;
     }
+    if (!token) {
+      loginError.textContent = 'Please enter the session token';
+      return;
+    }
 
-    connectAsRaider(name, sessId);
+    connectAsRaider(name, sessId, token);
   });
 
   // Enter key on inputs
-  sessionIdInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') connectBtn.click();
-  });
   displayNameInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sessionIdInput.focus();
+  });
+  sessionIdInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sessionTokenInput.focus();
+  });
+  sessionTokenInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') connectBtn.click();
   });
 
   // Copy session ID
   copySessionBtn.addEventListener('click', () => {
     navigator.clipboard.writeText(sessionId);
     copySessionBtn.textContent = 'Copied!';
-    setTimeout(() => copySessionBtn.textContent = 'Copy', 1500);
+    setTimeout(() => copySessionBtn.textContent = 'Copy ID', 1500);
+  });
+
+  // Copy session token
+  copyTokenBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(sessionToken);
+    copyTokenBtn.textContent = 'Copied!';
+    setTimeout(() => copyTokenBtn.textContent = 'Copy Token', 1500);
   });
 
   // Reset buttons
@@ -211,6 +230,7 @@ function connectAsAdmin(password) {
   socket.on('session_created', (data) => {
     console.log(`[CLIENT] Received: session_created | sessionId: ${data.sessionId}`);
     sessionId = data.sessionId;
+    sessionToken = data.sessionToken;
     currentRole = 'admin';
     symbolSequence = data.symbolSequence || [];
     showScreen('admin');
@@ -231,9 +251,10 @@ function connectAsAdmin(password) {
   setupCommonSocketHandlers();
 }
 
-function connectAsRaider(name, sessId) {
+function connectAsRaider(name, sessId, token) {
   displayName = name;
   sessionId = sessId;
+  sessionToken = token;
 
   console.log(`[CLIENT] Connecting to server: ${config.serverUrl}`);
   socket = io(config.serverUrl, { transports: ['websocket', 'polling'] });
@@ -241,7 +262,7 @@ function connectAsRaider(name, sessId) {
   socket.on('connect', () => {
     console.log(`[CLIENT] Connected to ${config.serverUrl} (socket: ${socket.id})`);
     console.log(`[CLIENT] Emitting: join_session | name: "${displayName}" sessionId: "${sessionId}"`);
-    socket.emit('join_session', { name: displayName, sessionId: sessionId });
+    socket.emit('join_session', { name: displayName, sessionId: sessionId, token: sessionToken });
   });
 
   socket.on('join_success', (data) => {
@@ -294,7 +315,7 @@ function setupCommonSocketHandlers() {
         // Admin needs to recreate - session is gone
       } else {
         console.log(`[CLIENT] Reconnect: re-emitting join_session | name: "${displayName}" sessionId: "${sessionId}"`);
-        socket.emit('join_session', { name: displayName, sessionId: sessionId });
+        socket.emit('join_session', { name: displayName, sessionId: sessionId, token: sessionToken });
       }
     }
   });
@@ -383,12 +404,14 @@ function resetToLogin() {
   socket = null;
   currentRole = null;
   sessionId = null;
+  sessionToken = null;
   displayName = null;
   symbolSequence = [];
   players = [];
 
   displayNameInput.value = '';
   sessionIdInput.value = '';
+  sessionTokenInput.value = '';
   adminCodeInput.value = '';
   loginError.textContent = '';
 
@@ -422,6 +445,7 @@ function updateModeIndicator() {
 
 function updateAdminUI() {
   adminSessionId.textContent = sessionId;
+  if (adminSessionToken) adminSessionToken.textContent = sessionToken || '—';
   updatePlayerCounts();
 }
 
