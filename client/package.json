@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "electron-updater": "^6.1.7",
     "socket.io-client": "^4.7.2"
   },
   "devDependencies": {
@@ -21,6 +22,9 @@
     "directories": {
       "output": "dist"
     },
+    "publish": {
+      "provider": "github"
+    },
     "files": [
       "**/*",
       "../assets/**/*"
@@ -32,7 +36,10 @@
       }
     ],
     "win": {
-      "target": "nsis",
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
       "icon": null
     }
   }

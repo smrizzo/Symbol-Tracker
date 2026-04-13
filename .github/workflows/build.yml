@@ -1,0 +1,46 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [main]
+    paths: ['client/**']
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Get version from package.json
+        id: version
+        shell: bash
+        working-directory: client
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Create release tag
+        shell: bash
+        run: |
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git tag "v${{ steps.version.outputs.VERSION }}" || echo "Tag v${{ steps.version.outputs.VERSION }} already exists"
+          git push origin "v${{ steps.version.outputs.VERSION }}" || echo "Tag already pushed"
+
+      - name: Install dependencies
+        working-directory: client
+        run: npm install
+
+      - name: Build and publish
+        working-directory: client
+        run: npx electron-builder --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}

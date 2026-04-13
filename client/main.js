@@ -1,5 +1,6 @@
 const { app, BrowserWindow, globalShortcut, ipcMain } = require('electron');
 const path = require('path');
+const { autoUpdater } = require('electron-updater');
 
 // Give each instance its own cache dir to avoid GPU cache conflicts when
 // running multiple instances simultaneously.
@@ -126,7 +127,36 @@ ipcMain.on('quit-app', () => {
   app.quit();
 });
 
-app.whenReady().then(createWindow);
+// Restart and install downloaded update
+ipcMain.on('restart-to-update', () => {
+  autoUpdater.quitAndInstall();
+});
+
+app.whenReady().then(() => {
+  createWindow();
+
+  // Auto-update only runs in the packaged app — no update server in dev
+  if (app.isPackaged) {
+    autoUpdater.autoDownload = true;
+
+    autoUpdater.on('update-available', (info) => {
+      console.log(`[UPDATER] Update available: ${info.version}`);
+      if (mainWindow) mainWindow.webContents.send('update-available', info);
+    });
+
+    autoUpdater.on('download-progress', (progress) => {
+      console.log(`[UPDATER] Download progress: ${Math.floor(progress.percent)}%`);
+      if (mainWindow) mainWindow.webContents.send('download-progress', progress);
+    });
+
+    autoUpdater.on('update-downloaded', (info) => {
+      console.log(`[UPDATER] Update downloaded: ${info.version}`);
+      if (mainWindow) mainWindow.webContents.send('update-downloaded', info);
+    });
+
+    autoUpdater.checkForUpdates();
+  }
+});
 
 app.on('window-all-closed', () => {
   globalShortcut.unregisterAll();

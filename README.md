@@ -191,16 +191,43 @@ You must set environment variables in Railway **before** the first deploy or the
 
 > **Railway note:** `PORT` is automatically provided by Railway — do not set it manually.
 
-## Building as Executable
+## Releasing a New Version
 
-Before building, make sure `client/config.json` has the correct production `serverUrl` and `adminCode`.
+Releases are built and published automatically by GitHub Actions whenever `client/` files are pushed to `main`.
+
+### Steps to release
+
+1. Bump the version in `client/package.json`:
+   ```json
+   { "version": "1.1.0" }
+   ```
+2. Commit and push to `main`:
+   ```bash
+   git add client/package.json
+   git commit -m "chore: bump version to 1.1.0"
+   git push origin main
+   ```
+3. GitHub Actions automatically:
+   - Creates a git tag `v1.1.0`
+   - Runs `electron-builder` on `windows-latest`
+   - Publishes a Windows installer (NSIS) and portable `.exe` to GitHub Releases
+4. Existing users are prompted to update on their next app launch via `electron-updater`.
+
+> **Required secret:** Add a `GH_TOKEN` secret to your GitHub repo (**Settings → Secrets → Actions**) with a Personal Access Token that has `repo` scope. This is used to create releases and upload artifacts.
+
+### Building locally
 
 ```bash
 cd client
+npm install
 npm run build
 ```
 
-The executable will be in the `client/dist` folder.
+The built files appear in `client/dist/`. Note: auto-update publishing is skipped in local builds unless you pass `--publish always` with a valid `GH_TOKEN`.
+
+### Server deploys
+
+The server does **not** go through this pipeline — Railway deploys automatically on every push to `main`.
 
 ## Tech Stack
 

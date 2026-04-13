@@ -748,3 +748,60 @@ body.raider-mode .resize-grip {
   border-right: 2px solid rgba(255, 255, 255, 0.3);
   border-bottom: 2px solid rgba(255, 255, 255, 0.3);
 }
+
+/* Update progress bar */
+.update-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(20, 10, 40, 0.95);
+  border-top: 1px solid #5c3a8a;
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #c8a0ff;
+  z-index: 99998;
+}
+
+.update-bar.hidden {
+  display: none;
+}
+
+.update-progress-track {
+  flex: 1;
+  height: 3px;
+  background: #333;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.update-progress-fill {
+  height: 100%;
+  background: #8a4fff;
+  width: 0%;
+  transition: width 0.3s ease;
+  border-radius: 2px;
+}
+
+.restart-update-btn {
+  background: #5c3a8a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.restart-update-btn:hover {
+  background: #7a50aa;
+}
+
+.restart-update-btn.hidden {
+  display: none;
+}

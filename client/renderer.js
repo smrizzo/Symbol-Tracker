@@ -79,13 +79,46 @@ const leaderDiagram = document.getElementById('leader-diagram');
 const connectionDot = document.getElementById('connection-dot');
 const raiderDiagram = document.getElementById('raider-diagram');
 
+// Update bar elements
+const updateBar = document.getElementById('update-bar');
+const updateText = document.getElementById('update-text');
+const updateProgressFill = document.getElementById('update-progress-fill');
+const restartUpdateBtn = document.getElementById('restart-update-btn');
+
 // Initialize
 async function init() {
   assetsPath = await window.electronAPI.getAssetsPath();
   setupEventListeners();
+  setupUpdateHandlers();
 
   // Set initial interactive mode class (app starts in interactive mode)
   document.body.classList.add('interactive-mode');
+}
+
+function setupUpdateHandlers() {
+  window.electronAPI.onUpdateAvailable((info) => {
+    console.log(`[CLIENT] Update available: ${info.version}`);
+  });
+
+  window.electronAPI.onDownloadProgress((progress) => {
+    const pct = Math.floor(progress.percent);
+    console.log(`[CLIENT] Download progress: ${pct}%`);
+    updateBar.classList.remove('hidden');
+    updateText.textContent = `Downloading update ${pct}%`;
+    updateProgressFill.style.width = `${pct}%`;
+  });
+
+  window.electronAPI.onUpdateDownloaded((info) => {
+    console.log(`[CLIENT] Update downloaded: ${info.version}`);
+    updateBar.classList.remove('hidden');
+    updateText.textContent = 'Update ready';
+    updateProgressFill.style.width = '100%';
+    restartUpdateBtn.classList.remove('hidden');
+  });
+
+  restartUpdateBtn.addEventListener('click', () => {
+    window.electronAPI.restartToUpdate();
+  });
 }
 
 function setupEventListeners() {
