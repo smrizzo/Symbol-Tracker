@@ -117,6 +117,20 @@ function setupUpdateHandlers() {
   });
 
   restartUpdateBtn.addEventListener('click', () => {
+    // Prevent double-clicks
+    restartUpdateBtn.disabled = true;
+
+    // Disconnect cleanly so the server doesn't hold a dangling player slot
+    if (socket) {
+      socket.disconnect();
+      socket = null;
+    }
+
+    // Let the user see what's happening during the 1.5 s delay in main.js
+    restartUpdateBtn.classList.add('hidden');
+    updateText.textContent = 'Restarting to update...';
+    updateProgressFill.style.width = '100%';
+
     window.electronAPI.restartToUpdate();
   });
 }

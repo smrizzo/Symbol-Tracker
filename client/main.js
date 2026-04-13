@@ -2,18 +2,40 @@ const { app, BrowserWindow, globalShortcut, ipcMain } = require('electron');
 const path = require('path');
 const { autoUpdater } = require('electron-updater');
 
-// Give each instance its own cache dir to avoid GPU cache conflicts when
-// running multiple instances simultaneously.
-app.setPath('userData', path.join(
-  app.getPath('appData'),
-  'SymbolTracker-' + (process.env.INSTANCE_ID || process.pid)
-));
+// Production: fixed userData path so requestSingleInstanceLock works correctly
+// (the lock file lives in userData — a pid-based path gives every process its
+// own directory, defeating the lock entirely).
+// Dev: pid-based path to allow running multiple test instances side by side.
+if (app.isPackaged) {
+  app.setPath('userData', path.join(app.getPath('appData'), 'SymbolTracker'));
+} else {
+  app.setPath('userData', path.join(
+    app.getPath('appData'),
+    'SymbolTracker-' + (process.env.INSTANCE_ID || process.pid)
+  ));
+}
 app.commandLine.appendSwitch('--disable-gpu-shader-disk-cache');
+
+// Enforce single instance — prevents two copies running simultaneously during
+// an update restart. Quit immediately if another instance already holds the lock.
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  app.quit();
+}
+
+// If a second instance is launched while we're running (e.g. user double-clicks
+// the shortcut again), bring the existing window to the front instead.
+app.on('second-instance', () => {
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  }
+});
 
 let mainWindow;
 let isInteractive = true;
 let currentRole = null;
-let test = "change for build";
+let isUpdating = false;
 
 function createWindow() {
   const { screen } = require('electron');
@@ -128,9 +150,15 @@ ipcMain.on('quit-app', () => {
   app.quit();
 });
 
-// Restart and install downloaded update
+// Restart and install downloaded update.
+// Give the renderer 1.5 s to disconnect its socket and show the restarting
+// message, then hand off to the installer.
 ipcMain.on('restart-to-update', () => {
-  autoUpdater.quitAndInstall();
+  isUpdating = true;
+  globalShortcut.unregisterAll();
+  setTimeout(() => {
+    autoUpdater.quitAndInstall(false, true);
+  }, 1500);
 });
 
 app.whenReady().then(() => {
@@ -160,6 +188,9 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+  // During an update the window may close before quitAndInstall fires —
+  // don't quit the process early or the installer never gets to run.
+  if (isUpdating) return;
   globalShortcut.unregisterAll();
   app.quit();
 });
