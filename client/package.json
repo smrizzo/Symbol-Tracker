@@ -1,6 +1,6 @@
 {
   "name": "symboltracker-client",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "SymbolTracker desktop overlay for WoW raid coordination",
   "author": "smrizzo",
   "repository": {
@@ -28,7 +28,10 @@
       "output": "dist"
     },
     "publish": {
-      "provider": "github"
+      "provider": "github",
+      "owner": "smrizzo",
+      "repo": "Symbol-Tracker",
+      "releaseType": "release"
     },
     "files": [
       "**/*",
