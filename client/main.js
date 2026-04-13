@@ -13,7 +13,7 @@ app.commandLine.appendSwitch('--disable-gpu-shader-disk-cache');
 let mainWindow;
 let isInteractive = true;
 let currentRole = null;
-let test = "";
+let test = "change for build";
 
 function createWindow() {
   const { screen } = require('electron');
